@@ -10,7 +10,7 @@ keywords = ["embedded-hal", "no-std", "debounce"]
 categories = ["embedded"]
 
 [dependencies]
-embedded-hal = { version = "0.2", features = ["unproven"] }
+embedded-hal = { version = "1.0" }
 
 [dev-dependencies]
 embedded-hal-mock = "0.7"

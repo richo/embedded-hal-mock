@@ -53,7 +53,7 @@
 //!
 //! ```
 //! # struct PinType;
-//! # impl embedded_hal::digital::v2::InputPin for PinType {
+//! # impl embedded_hal::digital::InputPin for PinType {
 //! #     type Error = core::convert::Infallible;
 //! #     fn is_high(&self) -> Result<bool, Self::Error> {
 //! #         Ok(true)
@@ -74,7 +74,7 @@
 //!
 //! ```
 //! # struct PinType;
-//! # use embedded_hal::digital::v2::{InputPin, OutputPin};
+//! # use embedded_hal::digital::{InputPin, OutputPin};
 //! # impl InputPin for PinType {
 //! #     type Error = core::convert::Infallible;
 //! #     fn is_high(&self) -> Result<bool, Self::Error> {
@@ -135,7 +135,7 @@
 //!
 //! ```
 //! # struct PinType;
-//! # impl embedded_hal::digital::v2::InputPin for PinType {
+//! # impl embedded_hal::digital::InputPin for PinType {
 //! #     type Error = core::convert::Infallible;
 //! #     fn is_high(&self) -> Result<bool, Self::Error> {
 //! #         Ok(true)
@@ -171,7 +171,7 @@
 //! [0]: https://github.com/rust-embedded/embedded-hal
 //! [1]: http://www.kennethkuhn.com/electronics/debounce.c
 //! [2]: https://github.com/rust-lang/rust/issues/67792
-//! [3]: https://docs.rs/embedded-hal/0.2.7/embedded_hal/digital/v2/trait.InputPin.html
+//! [3]: https://docs.rs/embedded-hal/0.2.7/embedded_hal/digital/trait.InputPin.html
 
 #![no_std]
 #![deny(missing_docs)]
@@ -183,7 +183,7 @@ use core::marker::PhantomData;
 use core::mem::MaybeUninit;
 use core::ops::{AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, Not, Shl, Shr, SubAssign};
 
-use embedded_hal::digital::v2::InputPin;
+use embedded_hal::digital::{InputPin, ErrorType};
 
 /// Static configuration of the debouncing algorithm.
 pub trait Debounce {
@@ -379,7 +379,7 @@ impl<'a, Cfg: Debounce> core::fmt::Debug for DeinitError<'a, Cfg> {
 ///
 /// ```
 /// # struct PinType;
-/// # impl embedded_hal::digital::v2::InputPin for PinType {
+/// # impl embedded_hal::digital::InputPin for PinType {
 /// #     type Error = core::convert::Infallible;
 /// #     fn is_high(&self) -> Result<bool, Self::Error> {
 /// #         Ok(true)
@@ -398,7 +398,7 @@ impl<'a, Cfg: Debounce> core::fmt::Debug for DeinitError<'a, Cfg> {
 ///
 /// ```
 /// # struct PinType;
-/// # impl embedded_hal::digital::v2::InputPin for PinType {
+/// # impl embedded_hal::digital::InputPin for PinType {
 /// #     type Error = core::convert::Infallible;
 /// #     fn is_high(&self) -> Result<bool, Self::Error> {
 /// #         Ok(true)
@@ -420,7 +420,7 @@ impl<'a, Cfg: Debounce> core::fmt::Debug for DeinitError<'a, Cfg> {
 ///
 /// ```
 /// # struct PinType;
-/// # impl embedded_hal::digital::v2::InputPin for PinType {
+/// # impl embedded_hal::digital::InputPin for PinType {
 /// #     type Error = core::convert::Infallible;
 /// #     fn is_high(&self) -> Result<bool, Self::Error> {
 /// #         Ok(true)
@@ -467,7 +467,7 @@ impl<Pin: InputPin, Cfg: Debounce> Debouncer<Pin, Cfg> {
     ///
     /// ```
     /// # struct PinType;
-    /// # impl embedded_hal::digital::v2::InputPin for PinType {
+    /// # impl embedded_hal::digital::InputPin for PinType {
     /// #     type Error = core::convert::Infallible;
     /// #     fn is_high(&self) -> Result<bool, Self::Error> {
     /// #         Ok(true)
@@ -555,7 +555,7 @@ impl<Pin: InputPin, Cfg: Debounce> Debouncer<Pin, Cfg> {
     ///
     /// ```
     /// # struct PinType;
-    /// # impl embedded_hal::digital::v2::InputPin for PinType {
+    /// # impl embedded_hal::digital::InputPin for PinType {
     /// #     type Error = core::convert::Infallible;
     /// #     fn is_high(&self) -> Result<bool, Self::Error> {
     /// #         Ok(true)
@@ -592,11 +592,11 @@ impl<Pin: InputPin, Cfg: Debounce> Debouncer<Pin, Cfg> {
 
         let pin_cell_ptr = self.pin.get();
         // This is safe because we only ever mutate in `init()`.
-        let pin_cell = unsafe { &*pin_cell_ptr };
+        let pin_cell = unsafe { &mut *pin_cell_ptr };
 
-        let pin_ptr = pin_cell.as_ptr();
+        let pin_ptr = pin_cell.as_mut_ptr();
         // This is safe because we've checked that init has completed.
-        let pin = unsafe { &*pin_ptr };
+        let pin = unsafe { &mut *pin_ptr };
 
         if pin.is_low().map_err(PollError::Pin)? {
             self.decrement_integrator();
@@ -777,7 +777,7 @@ impl<Pin: InputPin, Cfg: Debounce> Debouncer<Pin, Cfg> {
 ///
 /// ```
 /// # struct PinType;
-/// # impl embedded_hal::digital::v2::InputPin for PinType {
+/// # impl embedded_hal::digital::InputPin for PinType {
 /// #     type Error = core::convert::Infallible;
 /// #     fn is_high(&self) -> Result<bool, Self::Error> {
 /// #         Ok(true)
@@ -805,11 +805,13 @@ pub struct Debounced<'state, Cfg: Debounce> {
     storage: &'state UnsafeCell<Cfg::Storage>,
 }
 
-impl<'state, Cfg: Debounce> InputPin for Debounced<'state, Cfg> {
+impl <'state, Cfg: Debounce> ErrorType for Debounced<'state, Cfg> {
     type Error = Infallible;
+}
 
+impl<'state, Cfg: Debounce> InputPin for Debounced<'state, Cfg> {
     #[inline(always)]
-    fn is_high(&self) -> Result<bool, Self::Error> {
+    fn is_high(&mut self) -> Result<bool, Self::Error> {
         let state_ptr = self.storage.get();
         // This is safe since the read is atomic.
         let state = unsafe { *state_ptr };
@@ -818,7 +820,7 @@ impl<'state, Cfg: Debounce> InputPin for Debounced<'state, Cfg> {
     }
 
     #[inline(always)]
-    fn is_low(&self) -> Result<bool, Self::Error> {
+    fn is_low(&mut self) -> Result<bool, Self::Error> {
         let state_ptr = self.storage.get();
         // This is safe since the read is atomic.
         let state = unsafe { *state_ptr };
