@@ -852,7 +852,7 @@ impl<'state, Cfg: Debounce> InputPin for Debounced<'state, Cfg> {
 mod test {
     use super::*;
 
-    use embedded_hal_mock::pin;
+    use embedded_hal_mock::eh1::digital as mock;
 
     #[test]
     fn simple() {
@@ -864,19 +864,19 @@ mod test {
         }
 
         let expectations = [
-            pin::Transaction::get(pin::State::High),
-            pin::Transaction::get(pin::State::High),
-            pin::Transaction::get(pin::State::High),
-            pin::Transaction::get(pin::State::Low),
-            pin::Transaction::get(pin::State::Low),
-            pin::Transaction::get(pin::State::Low),
+            mock::Transaction::get(mock::State::High),
+            mock::Transaction::get(mock::State::High),
+            mock::Transaction::get(mock::State::High),
+            mock::Transaction::get(mock::State::Low),
+            mock::Transaction::get(mock::State::Low),
+            mock::Transaction::get(mock::State::Low),
         ];
 
-        let pin = pin::Mock::new(&expectations);
+        let pin = mock::Mock::new(&expectations);
 
         let debouncer: Debouncer<_, Cfg> = debouncer_uninit!();
         // It is always safe to init a stack-scoped Debouncer.
-        let debounced = unsafe { debouncer.init(pin) }.expect("debounced pin");
+        let mut debounced = unsafe { debouncer.init(pin) }.expect("debounced pin");
 
         assert_eq!(true, debounced.is_low().unwrap());
         assert_eq!(false, debounced.is_high().unwrap());
@@ -929,23 +929,23 @@ mod test {
         const INIT_HIGH: bool = false;
     }
 
-    static SIMPLE_STATIC_TEST: Debouncer<pin::Mock, Cfg> = debouncer_uninit!();
+    static SIMPLE_STATIC_TEST: Debouncer<mock::Mock, Cfg> = debouncer_uninit!();
 
     #[test]
     fn simple_static() {
         let expectations = [
-            pin::Transaction::get(pin::State::High),
-            pin::Transaction::get(pin::State::High),
-            pin::Transaction::get(pin::State::High),
-            pin::Transaction::get(pin::State::Low),
-            pin::Transaction::get(pin::State::Low),
-            pin::Transaction::get(pin::State::Low),
+            mock::Transaction::get(mock::State::High),
+            mock::Transaction::get(mock::State::High),
+            mock::Transaction::get(mock::State::High),
+            mock::Transaction::get(mock::State::Low),
+            mock::Transaction::get(mock::State::Low),
+            mock::Transaction::get(mock::State::Low),
         ];
 
-        let pin = pin::Mock::new(&expectations);
+        let pin = mock::Mock::new(&expectations);
 
         // This is safe since this is the only test using this Debouncer.
-        let debounced = unsafe { SIMPLE_STATIC_TEST.init(pin) }.expect("debounced pin");
+        let mut debounced = unsafe { SIMPLE_STATIC_TEST.init(pin) }.expect("debounced pin");
 
         assert_eq!(true, debounced.is_low().unwrap());
         assert_eq!(false, debounced.is_high().unwrap());
@@ -994,12 +994,14 @@ mod test {
     #[test]
     fn zero_sized_pin_type() {
         struct Pin;
-        impl InputPin for Pin {
+        impl ErrorType for Pin {
             type Error = core::convert::Infallible;
-            fn is_high(&self) -> Result<bool, Self::Error> {
+        }
+        impl InputPin for Pin {
+            fn is_high(&mut self) -> Result<bool, Self::Error> {
                 Ok(true)
             }
-            fn is_low(&self) -> Result<bool, Self::Error> {
+            fn is_low(&mut self) -> Result<bool, Self::Error> {
                 Ok(false)
             }
         }
