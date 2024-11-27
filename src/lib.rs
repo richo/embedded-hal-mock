@@ -53,12 +53,15 @@
 //!
 //! ```
 //! # struct PinType;
-//! # impl embedded_hal::digital::InputPin for PinType {
+//! # use embedded_hal::digital::{InputPin, OutputPin, ErrorType};
+//! # impl ErrorType for PinType {
 //! #     type Error = core::convert::Infallible;
-//! #     fn is_high(&self) -> Result<bool, Self::Error> {
+//! # }
+//! # impl embedded_hal::digital::InputPin for PinType {
+//! #     fn is_high(&mut self) -> Result<bool, Self::Error> {
 //! #         Ok(true)
 //! #     }
-//! #     fn is_low(&self) -> Result<bool, Self::Error> {
+//! #     fn is_low(&mut self) -> Result<bool, Self::Error> {
 //! #         Ok(false)
 //! #     }
 //! # }
@@ -74,18 +77,19 @@
 //!
 //! ```
 //! # struct PinType;
-//! # use embedded_hal::digital::{InputPin, OutputPin};
-//! # impl InputPin for PinType {
+//! # use embedded_hal::digital::{InputPin, OutputPin, ErrorType};
+//! # impl ErrorType for PinType {
 //! #     type Error = core::convert::Infallible;
-//! #     fn is_high(&self) -> Result<bool, Self::Error> {
+//! # }
+//! # impl InputPin for PinType {
+//! #     fn is_high(&mut self) -> Result<bool, Self::Error> {
 //! #         Ok(true)
 //! #     }
-//! #     fn is_low(&self) -> Result<bool, Self::Error> {
+//! #     fn is_low(&mut self) -> Result<bool, Self::Error> {
 //! #         Ok(false)
 //! #     }
 //! # }
 //! # impl OutputPin for PinType {
-//! #     type Error = core::convert::Infallible;
 //! #     fn set_high(&mut self) -> Result<(), Self::Error> {
 //! #         Ok(())
 //! #     }
@@ -112,7 +116,7 @@
 //! fn try_main() -> Result<(), Error> {
 //!     let switch_pin = get_pin_from_hardware(33);
 //!     let mut led_pin = get_pin_from_hardware(42);
-//!     let debounced_switch = unsafe { DEBOUNCER.init(switch_pin) }?;
+//!     let mut debounced_switch = unsafe { DEBOUNCER.init(switch_pin) }?;
 //!
 //!     loop {
 //!         if debounced_switch.is_high()? {
@@ -135,12 +139,14 @@
 //!
 //! ```
 //! # struct PinType;
+//! # impl embedded_hal::digital::ErrorType for PinType {
+//! #    type Error = core::convert::Infallible;
+//! # }
 //! # impl embedded_hal::digital::InputPin for PinType {
-//! #     type Error = core::convert::Infallible;
-//! #     fn is_high(&self) -> Result<bool, Self::Error> {
+//! #     fn is_high(&mut self) -> Result<bool, Self::Error> {
 //! #         Ok(true)
 //! #     }
-//! #     fn is_low(&self) -> Result<bool, Self::Error> {
+//! #     fn is_low(&mut self) -> Result<bool, Self::Error> {
 //! #         Ok(false)
 //! #     }
 //! # }
@@ -379,12 +385,14 @@ impl<'a, Cfg: Debounce> core::fmt::Debug for DeinitError<'a, Cfg> {
 ///
 /// ```
 /// # struct PinType;
-/// # impl embedded_hal::digital::InputPin for PinType {
+/// # impl embedded_hal::digital::ErrorType for PinType {
 /// #     type Error = core::convert::Infallible;
-/// #     fn is_high(&self) -> Result<bool, Self::Error> {
+/// # }
+/// # impl embedded_hal::digital::InputPin for PinType {
+/// #     fn is_high(&mut self) -> Result<bool, Self::Error> {
 /// #         Ok(true)
 /// #     }
-/// #     fn is_low(&self) -> Result<bool, Self::Error> {
+/// #     fn is_low(&mut self) -> Result<bool, Self::Error> {
 /// #         Ok(false)
 /// #     }
 /// # }
@@ -398,12 +406,14 @@ impl<'a, Cfg: Debounce> core::fmt::Debug for DeinitError<'a, Cfg> {
 ///
 /// ```
 /// # struct PinType;
-/// # impl embedded_hal::digital::InputPin for PinType {
+/// # impl embedded_hal::digital::ErrorType for PinType {
 /// #     type Error = core::convert::Infallible;
-/// #     fn is_high(&self) -> Result<bool, Self::Error> {
+/// # }
+/// # impl embedded_hal::digital::InputPin for PinType {
+/// #     fn is_high(&mut self) -> Result<bool, Self::Error> {
 /// #         Ok(true)
 /// #     }
-/// #     fn is_low(&self) -> Result<bool, Self::Error> {
+/// #     fn is_low(&mut self) -> Result<bool, Self::Error> {
 /// #         Ok(false)
 /// #     }
 /// # }
@@ -420,12 +430,14 @@ impl<'a, Cfg: Debounce> core::fmt::Debug for DeinitError<'a, Cfg> {
 ///
 /// ```
 /// # struct PinType;
-/// # impl embedded_hal::digital::InputPin for PinType {
+/// # impl embedded_hal::digital::ErrorType for PinType {
 /// #     type Error = core::convert::Infallible;
-/// #     fn is_high(&self) -> Result<bool, Self::Error> {
+/// # }
+/// # impl embedded_hal::digital::InputPin for PinType {
+/// #     fn is_high(&mut self) -> Result<bool, Self::Error> {
 /// #         Ok(true)
 /// #     }
-/// #     fn is_low(&self) -> Result<bool, Self::Error> {
+/// #     fn is_low(&mut self) -> Result<bool, Self::Error> {
 /// #         Ok(false)
 /// #     }
 /// # }
@@ -467,12 +479,14 @@ impl<Pin: InputPin, Cfg: Debounce> Debouncer<Pin, Cfg> {
     ///
     /// ```
     /// # struct PinType;
-    /// # impl embedded_hal::digital::InputPin for PinType {
+    /// # impl embedded_hal::digital::ErrorType for PinType {
     /// #     type Error = core::convert::Infallible;
-    /// #     fn is_high(&self) -> Result<bool, Self::Error> {
+    /// # }
+    /// # impl embedded_hal::digital::InputPin for PinType {
+    /// #     fn is_high(&mut self) -> Result<bool, Self::Error> {
     /// #         Ok(true)
     /// #     }
-    /// #     fn is_low(&self) -> Result<bool, Self::Error> {
+    /// #     fn is_low(&mut self) -> Result<bool, Self::Error> {
     /// #         Ok(false)
     /// #     }
     /// # }
@@ -555,11 +569,10 @@ impl<Pin: InputPin, Cfg: Debounce> Debouncer<Pin, Cfg> {
     ///
     /// ```
     /// # struct PinType;
-    /// # impl ErrorType for PinType {
+    /// # impl embedded_hal::digital::ErrorType for PinType {
     /// #     type Error = core::convert::Infallible;
     /// # }
     /// # impl embedded_hal::digital::InputPin for PinType {
-    /// #     type Error = core::convert::Infallible;
     /// #     fn is_high(&mut self) -> Result<bool, Self::Error> {
     /// #         Ok(true)
     /// #     }
@@ -780,7 +793,7 @@ impl<Pin: InputPin, Cfg: Debounce> Debouncer<Pin, Cfg> {
 ///
 /// ```
 /// # struct PinType;
-/// # impl ErrorType for PinType {
+/// # impl embedded_hal::digital::ErrorType for PinType {
 /// #     type Error = core::convert::Infallible;
 /// # }
 /// # impl embedded_hal::digital::InputPin for PinType {
