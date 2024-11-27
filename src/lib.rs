@@ -555,12 +555,15 @@ impl<Pin: InputPin, Cfg: Debounce> Debouncer<Pin, Cfg> {
     ///
     /// ```
     /// # struct PinType;
+    /// # impl ErrorType for PinType {
+    /// #     type Error = core::convert::Infallible;
+    /// # }
     /// # impl embedded_hal::digital::InputPin for PinType {
     /// #     type Error = core::convert::Infallible;
-    /// #     fn is_high(&self) -> Result<bool, Self::Error> {
+    /// #     fn is_high(&mut self) -> Result<bool, Self::Error> {
     /// #         Ok(true)
     /// #     }
-    /// #     fn is_low(&self) -> Result<bool, Self::Error> {
+    /// #     fn is_low(&mut self) -> Result<bool, Self::Error> {
     /// #         Ok(false)
     /// #     }
     /// # }
@@ -777,12 +780,14 @@ impl<Pin: InputPin, Cfg: Debounce> Debouncer<Pin, Cfg> {
 ///
 /// ```
 /// # struct PinType;
-/// # impl embedded_hal::digital::InputPin for PinType {
+/// # impl ErrorType for PinType {
 /// #     type Error = core::convert::Infallible;
-/// #     fn is_high(&self) -> Result<bool, Self::Error> {
+/// # }
+/// # impl embedded_hal::digital::InputPin for PinType {
+/// #     fn is_high(&mut self) -> Result<bool, Self::Error> {
 /// #         Ok(true)
 /// #     }
-/// #     fn is_low(&self) -> Result<bool, Self::Error> {
+/// #     fn is_low(&mut self) -> Result<bool, Self::Error> {
 /// #         Ok(false)
 /// #     }
 /// # }
